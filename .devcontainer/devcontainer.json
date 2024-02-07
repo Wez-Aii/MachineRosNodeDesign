@@ -1,0 +1,29 @@
+{
+    "name": "Ros-Ejector",
+    // "image": "aii-ros:humble",
+    "dockerFile": "Dockerfile",
+    // "shutdownAction": "none",
+    "shutdownAction": "stopContainer",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-iot.vscode-ros",
+                "ms-python.black-formatter"
+            ]
+        }
+    },
+    // "runArgs": [
+    //     "--network",
+    //     "machine_network"
+    // ],
+    "containerEnv": {
+        "ROS_DOMAIN_ID": 8,
+        // "ROS_DOMAIN_ID": 9,
+        "RMW_IMPLEMENTATION": "rmw_fastrtps_cpp",
+    },
+    "workspaceFolder": "/workspace",
+    "workspaceMount": "source=/home/wezaii/Development/PreDevTesting/Ros2BaseNode,target=/workspace,type=bind",
+    // "postCreateCommand": "apt-get update && apt-get install -y python3-pip && pip3 install -r /workspace/requirements.txt && echo 'source /ros_entrypoint.sh' >> ~/.bashrc",
+    // "postCreateCommand": "/bin/bash -c . /workspace/startup.sh"
+}
