@@ -1,0 +1,10 @@
+// get accessible ros topics list
+$ ros2 topic list
+
+// pub string msg to ros topic
+//// pub config once (Default - keep sending in infinite loop)
+ros2 topic pub --once /config std_msgs/String "data: '{\"tester\": {\"mode\": \"oper\", \"config_data\": {}}}'"
+
+//// pub command once (Default - keep sending in infinite loop)
+$ ros2 topic pub --once /command std_msgs/String "data: '{\"node_name\": \"all\", \"command\": \"start\"}'"
+$ ros2 topic pub --once /command std_msgs/String "data: '{\"node_name\": \"all\", \"command\": \"stop\"}'"

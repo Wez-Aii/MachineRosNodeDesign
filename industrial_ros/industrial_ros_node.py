@@ -74,6 +74,8 @@ class IndustrialROS(Node):
         
         self._node_type: str
         self._node_name: str
+
+        self.mode_classes : dict
         
         self.node_suffix = node_suffix
 
@@ -101,6 +103,7 @@ class IndustrialROS(Node):
         These variables represent current statues/messages
         """
         self.heartbeat = time.monotonic()
+        self.mode = None
         self.command = None
         self.config_hash = None
         self.config = None
@@ -138,7 +141,7 @@ class IndustrialROS(Node):
         self._feedback_publisher = self.create_publisher(
             String,
             self._feedback_topic,
-            QoSPresetProfiles.get_from_short_key("service_default")
+            QoSPresetProfiles.get_from_short_key("services_default")
         )
 
         self._feedback_timer = self.create_timer(
@@ -147,20 +150,129 @@ class IndustrialROS(Node):
             callback_group=self._control_callback_group
         )
 
-    def heartbeat_listener(self, command: String):
-        pass
+    def heartbeat_listener(self, heartbeat: String):
+        """
+        heartbeat will be message of "OK/ERROR"
+        """
+        if heartbeat.data == NodeHeartbeats.ERROR.value:
+            if self.status == NodeStatuses.ERROR:
+                logging.critical("Func(heartbeat_listener_ - System Error: Restarting in 3 seconds")
+                self._feedback_timer_callback()
+                # time.sleep(self._restart_wait_time)
+                """
+				Restart ROS Service:
+				Only when the node itself was error, ROS service needs to shutdown by itself 
+				"""
+                # logging.error(f"Node Error - {self.error}")
+                # sys.exit(f"Node Error - {self.error}")
+            else:
+                self.heartbeat = time.monotonic()
+        else:
+            self.heartbeat = time.monotonic()
 
-    def config_listener(self):
-        pass
+    def config_listener(self, config: String):
+        _config = config.data
+        _config = json.loads(_config)
+        _config = _config.get(self._node_type, {})
+        self.config = _config
+        _mode = _config.get("mode")
+        _config_string = json.dumps(self.config)
+
+        if (_mode != self.mode and _mode in self.mode_classes) or self.config_hash != hash(_config_string):
+            self.stop() # type: ignore
+            self.cleanup() # type: ignore
+            self.mode = _mode
+            # Change base classes, so the "self" can have access to new methods
+            self.__class__.__bases__ = (IndustrialROS, self.mode_classes.get(_mode))
+            self.mode_classes.get(_mode).__init__(self, node_suffix=self.node_suffix)
+        
+        self.config_hash = hash(_config_string)
+        try:
+            self.apply_config(_config_string) # type: ignore
+        except Exception as e:
+            self.error = str(e)
+            self.status = NodeStatuses.ERROR
+            self._feedback_timer_callback()
+
 
     def command_listener(self, command: String):
-        pass
+        _command_msg = command.data
+        _command_msg = json.loads(_command_msg)
+        _target_node = _command_msg.get("node_name")
+        _command = _command_msg.get("command")
+
+        if self.mode_init:
+            if self._node_name == _target_node or _target_node == "all":
+                try:
+                    if self.command != _command:
+                        self.status = NodeStatuses.INPROGRESS
+                        self.command = _command
+                        if self.command == NodeCommands.START.value:
+                            self.start() # type: ignore
+                        elif self.command == NodeCommands.STOP.value:
+                            self.stop() # type: ignore
+                        else:
+                            pass
+                    else:
+                        if self.command == NodeCommands.START.value and self.status != NodeStatuses.PLAYING:
+                            self.start() # type: ignore
+                        elif self.command == NodeCommands.STOP.value and self.status not in [NodeStatuses.PAUSE, NodeStatuses.READY]:
+                            self.stop() # type: ignore
+                        else:
+                            pass
+                except Exception as e:
+                    print(f"catch error - {e}")
+                    logging.error(str(e))
+                    self.status = NodeStatuses.ERROR
+                    self.error = str(e)
+                    self._feedback_timer_callback()
+        
 
     def check_heartbeat_timeout(self):
-        pass
+        if time.monotonic() - self.heartbeat > self._heartbeat_timeout_sec:
+            logging.critical("System Heartbeat Not Detected.....")
+            logging.critical(f"Restarting in {self._restart_wait_time} seconds")
+            time.sleep(self._restart_wait_time)
+            sys.exit("System Heartbeat Not Detected")
 
     def _feedback_timer_callback(self):
+        feedback = {
+            "node_type": self._node_type,
+            "node_name": self.get_name(),
+            "mode": self.mode,
+            "command": self.command,
+            "config": self.config_hash,
+            "status": self.status.value if self.status is not None else None,
+            "info": self.info,
+            "warning": self.warning,
+            "error": self.error
+        }
+        feedback = json.dumps(feedback)
+        _feedback = String()
+        _feedback.data = feedback
+        self._feedback_publisher.publish(_feedback)
+        self.check_heartbeat_timeout()
+
+
+class IndustrialROSMode:
+    def __init__(self) -> None:
+        self.mode_init = False
         pass
 
+    def post_initialize_ros(self):
+        pass
 
+    def destroy_ros(self):
+        pass
 
+    def cleanup(self):
+        pass
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def apply_config(self, config: str):
+        pass
