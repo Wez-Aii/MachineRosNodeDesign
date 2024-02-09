@@ -3,6 +3,7 @@ import json
 import time
 import sys
 from enum import Enum
+import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSPresetProfiles
 from std_msgs.msg import String
@@ -187,10 +188,12 @@ class IndustrialROS(Node):
                 self.error = str(e)
                 self._feedback_timer_callback()
             self.cleanup() # type: ignore
+            # rclpy.shutdown()
             self.mode = _mode
             # Change base classes, so the "self" can have access to new methods
             self.__class__.__bases__ = (IndustrialROS, self.mode_classes.get(_mode))
-            self.mode_classes.get(_mode).__init__(self, node_suffix=self.node_suffix)
+            self.mode_classes.get(_mode).__init__(self, node_type=self.node_type, node_suffix=self.node_suffix)
+            self.initialize_industries_ros()
         
         self.config_hash = hash(_config_string)
         try:

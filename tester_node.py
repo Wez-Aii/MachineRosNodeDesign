@@ -1,5 +1,7 @@
 import multiprocessing
 
+from rclpy.node import Node
+
 # import pytz
 import rclpy
 import os
@@ -25,7 +27,9 @@ class IndustriesNodeTester(IndustrialROS, IndustrialROSMode):
         IndustrialROS.__init__(self, node_suffix=node_suffix)
         IndustrialROSMode.__init__(self)
 
+
         self.status = NodeStatuses.READY
+        self.node_type = "tester"
 
         self.mode_classes = {
             "oper": TesterModeOperation,
@@ -42,15 +46,16 @@ class IndustriesNodeTester(IndustrialROS, IndustrialROSMode):
         _config_msg = String()
         _config_msg.data = _default_config
         self.config_listener(_config_msg)
-        self.initialize_industries_ros()
+        # self.initialize_industries_ros()
 
 
 def main():
     rclpy.init()
-    _tester_executor = MultiThreadedExecutor()
+    # _tester_executor = MultiThreadedExecutor()
     _tester_node = IndustriesNodeTester(node_suffix=1)
-    _tester_executor.add_node(_tester_node)
-    _tester_executor.spin()
+    # _tester_executor.add_node(_tester_node)
+    # _tester_executor.spin()
+    rclpy.spin(_tester_node)
     _tester_node.destroy_node()
     rclpy.shutdown()
         
