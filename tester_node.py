@@ -15,6 +15,7 @@ from time import monotonic, sleep
 from industrial_ros.industrial_ros_node import IndustrialROS, IndustrialROSMode, NodeStatuses
 
 from tester_mode_operation import TesterModeOperation
+from tester_mode_test import TesterModeTesting
 
 
 
@@ -25,14 +26,15 @@ class IndustriesNodeTester(IndustrialROS, IndustrialROSMode):
         IndustrialROSMode.__init__(self)
 
         self.status = NodeStatuses.READY
-        self._node_type = "tester"
 
         self.mode_classes = {
-            "oper": TesterModeOperation
+            "oper": TesterModeOperation,
+            "test": TesterModeTesting
         }
         _default_config = {
             "tester": {
-                "mode": "oper"
+                "mode": "oper",
+                # "mode": "test"
             }
         }
 
@@ -40,7 +42,7 @@ class IndustriesNodeTester(IndustrialROS, IndustrialROSMode):
         _config_msg = String()
         _config_msg.data = _default_config
         self.config_listener(_config_msg)
-        self.initialize_inndustries_ros()
+        self.initialize_industries_ros()
 
 
 def main():

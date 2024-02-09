@@ -72,8 +72,8 @@ class IndustrialROS(Node):
 
     def __init__(self, node_suffix: int = 1):
         
-        self._node_type: str
-        self._node_name: str
+        self.node_type: str
+        self.node_name: str
 
         self.mode_classes : dict
         
@@ -113,7 +113,7 @@ class IndustrialROS(Node):
         self.warning = None 
         self.info = None
 
-    def initialize_inndustries_ros(self):
+    def initialize_industries_ros(self):
         self._heartbeat_subscriber = self.create_subscription(
             String,
             self._systemheartbeat_topic,
@@ -173,13 +173,19 @@ class IndustrialROS(Node):
     def config_listener(self, config: String):
         _config = config.data
         _config = json.loads(_config)
-        _config = _config.get(self._node_type, {})
+        _config = _config.get(self.node_type, {})
         self.config = _config
         _mode = _config.get("mode")
         _config_string = json.dumps(self.config)
 
         if (_mode != self.mode and _mode in self.mode_classes) or self.config_hash != hash(_config_string):
-            self.stop() # type: ignore
+            try:
+                self.stop() # type: ignore
+            except Exception as e:
+                logging.error(str(e))
+                self.status = NodeStatuses.ERROR
+                self.error = str(e)
+                self._feedback_timer_callback()
             self.cleanup() # type: ignore
             self.mode = _mode
             # Change base classes, so the "self" can have access to new methods
@@ -202,7 +208,7 @@ class IndustrialROS(Node):
         _command = _command_msg.get("command")
 
         if self.mode_init:
-            if self._node_name == _target_node or _target_node == "all":
+            if self.node_name == _target_node or _target_node == "all":
                 try:
                     if self.command != _command:
                         self.status = NodeStatuses.INPROGRESS
@@ -221,7 +227,6 @@ class IndustrialROS(Node):
                         else:
                             pass
                 except Exception as e:
-                    print(f"catch error - {e}")
                     logging.error(str(e))
                     self.status = NodeStatuses.ERROR
                     self.error = str(e)
@@ -237,7 +242,7 @@ class IndustrialROS(Node):
 
     def _feedback_timer_callback(self):
         feedback = {
-            "node_type": self._node_type,
+            "node_type": self.node_type,
             "node_name": self.get_name(),
             "mode": self.mode,
             "command": self.command,
@@ -251,7 +256,7 @@ class IndustrialROS(Node):
         _feedback = String()
         _feedback.data = feedback
         self._feedback_publisher.publish(_feedback)
-        self.check_heartbeat_timeout()
+        # self.check_heartbeat_timeout()
 
 
 class IndustrialROSMode:
