@@ -15,8 +15,21 @@ from time import monotonic, sleep
 from threading import Timer
 from collections import OrderedDict
 
-class TesterModeTesting(Node, IndustrialROSMode):
+
+
 # class TesterModeTesting(IndustrialROS, IndustrialROSMode):
+#     def __init__(self, node_type, node_suffix: int = 1) -> None:
+#         self.node_type = node_type
+#         self.node_name = f"{node_type}_oper_{node_suffix}"
+#         Node.__init__(self, node_name=self.node_name)
+#         IndustrialROS.__init__(self, node_suffix=node_suffix)
+#         IndustrialROSMode.__init__(self)
+#         self.initialize_industries_ros()
+#         logging.warning("Test Mode Initialized")
+#         self.mode_init = True
+
+
+class TesterModeTesting(Node, IndustrialROSMode):
     def __init__(self, node_type, node_suffix: int = 1) -> None:
         # if not(hasattr(self, "node_name") and self.node_name is not None):
         #     self.node_name = f"{self.node_type}_{node_suffix}"
@@ -59,7 +72,7 @@ class TesterModeTesting(Node, IndustrialROSMode):
 def main():
     rclpy.init()
     _tester_executor = MultiThreadedExecutor()
-    _tester_node = TesterModeTesting(node_suffix=1)
+    _tester_node = TesterModeTesting(node_type="tester",node_suffix=1)
     _tester_executor.add_node(_tester_node)
     _tester_executor.spin()
     _tester_node.destroy_node()
