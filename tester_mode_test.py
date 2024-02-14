@@ -57,7 +57,7 @@ class TesterModeTesting(Node, IndustrialROSMode):
         for each in range(5):
             sleep(1)
             pass
-        self.status = NodeStatuses.PLAYING
+        self.status = NodeStatuses.PAUSE
         # self.destroy_node()
         # if each > 8:
         # raise Exception("dummy error")

@@ -20,6 +20,31 @@ from tester_mode_operation import TesterModeOperation
 from tester_mode_test import TesterModeTesting
 
 
+# class IndustriesNodeTester(IndustrialROS):
+#     def __init__(self, node_suffix: int = 1):
+#         super().__init__(node_suffix)
+#         self.status = NodeStatuses.READY
+#         self.node_type = "tester"
+#         self.node_name = f"{self.node_type}_oper_{node_suffix}"
+#         Node.__init__(self, node_name=self.node_name)
+#         self.initialize_industries_ros()
+#         logging.warning("Base Node Initialized")
+#         self.mode_init = True
+
+#     def destroy_ros(self):
+#         pass
+
+#     def cleanup(self):
+#         pass
+
+#     def apply_config(self):
+#         pass
+
+#     def start(self):
+#         pass
+
+#     def stop(self):
+#         pass
 
 class IndustriesNodeTester(IndustrialROS, IndustrialROSMode):
     def __init__(self, node_suffix: int = 1):

@@ -46,8 +46,7 @@ class TesterModeOperation(Node, IndustrialROSMode):
             sleep(1)
             print("Oper Mode starting process", each)
             pass
-        self.status = NodeStatuses.PLAYING
-        # if each > 8:
+        self.status = NodeStatuses.PAUSE
         raise Exception("dummy error")
     
     def stop(self):
@@ -55,8 +54,6 @@ class TesterModeOperation(Node, IndustrialROSMode):
             sleep(1)
             pass
         self.status = NodeStatuses.PLAYING
-        # self.destroy_node()
-        # if each > 8:
         # raise Exception("dummy error")
 
     
