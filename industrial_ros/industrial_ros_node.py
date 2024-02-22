@@ -207,6 +207,7 @@ class IndustrialROS(Node):
     def command_listener(self, command: String):
         _command_msg = command.data
         _command_msg = json.loads(_command_msg)
+        logging.debug(f"command - {_command_msg}")
         _target_node = _command_msg.get("node_name")
         _command = _command_msg.get("command")
 
